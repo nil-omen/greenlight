@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Short Runtime
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Bambi",
+    "year": 1942,
+    "runtime": 70,
+    "genres": ["animation", "drama", "family"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Short Runtime**
+  
+  Tests creating a movie with a relatively short runtime.
+  
+  **Test Data:**
+  - Title: Bambi
+  - Year: 1942
+  - Runtime: 70 minutes
+  - Genres: animation, drama, family
+}

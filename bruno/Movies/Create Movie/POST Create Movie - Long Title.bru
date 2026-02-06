@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Long Title
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb",
+    "year": 1964,
+    "runtime": 95,
+    "genres": ["comedy", "war"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Long Title**
+  
+  Tests creating a movie with a very long title to test string handling.
+  
+  **Test Data:**
+  - Title: Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb
+  - Year: 1964
+  - Runtime: 95 minutes
+  - Genres: comedy, war
+}

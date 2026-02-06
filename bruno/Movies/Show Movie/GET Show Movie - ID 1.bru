@@ -1,0 +1,50 @@
+meta {
+  name: GET Show Movie - ID 1
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/movies/1
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.movie: isDefined
+  res.body.movie.id: eq 1
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return a movie object", function() {
+    expect(res.body.movie).to.be.an('object');
+    expect(res.body.movie.id).to.equal(1);
+  });
+  
+  test("movie should have required fields", function() {
+    const movie = res.body.movie;
+    expect(movie).to.have.property('title');
+    expect(movie).to.have.property('runtime');
+    expect(movie).to.have.property('genres');
+    expect(movie).to.have.property('version');
+  });
+  
+  test("genres should be an array", function() {
+    expect(res.body.movie.genres).to.be.an('array');
+  });
+}
+
+docs {
+  **Show Movie - Test ID 1**
+  
+  Tests retrieving a movie by ID. Currently returns dummy data (Casablanca).
+  
+  **Expected Response:**
+  - Status: 200 OK
+  - Body contains: movie object with id, title, runtime, genres, version
+}

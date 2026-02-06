@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Horror
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "The Conjuring",
+    "year": 2013,
+    "runtime": 112,
+    "genres": ["horror", "thriller", "mystery"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Horror Example**
+  
+  Tests creating a horror movie with multiple genres.
+  
+  **Test Data:**
+  - Title: The Conjuring
+  - Year: 2013
+  - Runtime: 112 minutes
+  - Genres: horror, thriller, mystery
+}

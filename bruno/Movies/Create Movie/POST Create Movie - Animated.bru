@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Animated
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Spirited Away",
+    "year": 2001,
+    "runtime": 125,
+    "genres": ["animation", "fantasy", "adventure"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Animated Film**
+  
+  Tests creating an animated movie with fantasy elements.
+  
+  **Test Data:**
+  - Title: Spirited Away
+  - Year: 2001
+  - Runtime: 125 minutes
+  - Genres: animation, fantasy, adventure
+}

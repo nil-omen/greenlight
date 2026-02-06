@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Recent Release
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Oppenheimer",
+    "year": 2023,
+    "runtime": 180,
+    "genres": ["biography", "drama", "history"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Recent Release**
+  
+  Tests creating a recent movie (2023).
+  
+  **Test Data:**
+  - Title: Oppenheimer
+  - Year: 2023
+  - Runtime: 180 minutes
+  - Genres: biography, drama, history
+}

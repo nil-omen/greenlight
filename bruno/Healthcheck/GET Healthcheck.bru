@@ -1,0 +1,44 @@
+meta {
+  name: GET Healthcheck
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/healthcheck
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq available
+  res.body.system_info.environment: isDefined
+  res.body.system_info.version: isDefined
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should have status available", function() {
+    expect(res.body.status).to.equal("available");
+  });
+  
+  test("should have system_info object", function() {
+    expect(res.body.system_info).to.be.an('object');
+    expect(res.body.system_info.environment).to.exist;
+    expect(res.body.system_info.version).to.exist;
+  });
+}
+
+docs {
+  **Healthcheck Endpoint Test**
+  
+  Tests the `/v1/healthcheck` endpoint to ensure the API is running and available.
+  
+  **Expected Response:**
+  - Status: 200 OK
+  - Body contains: status, system_info (environment, version)
+}

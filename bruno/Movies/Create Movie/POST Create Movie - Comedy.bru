@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Comedy
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Superbad",
+    "year": 2007,
+    "runtime": 113,
+    "genres": ["comedy"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Comedy Example**
+  
+  Tests creating a comedy movie with a single genre.
+  
+  **Test Data:**
+  - Title: Superbad
+  - Year: 2007
+  - Runtime: 113 minutes
+  - Genres: comedy
+}

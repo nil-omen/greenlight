@@ -1,0 +1,28 @@
+meta {
+  name: GET Show Movie - Invalid ID (String)
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/v1/movies/abc
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 404
+}
+
+tests {
+  test("should return 404 for invalid ID", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}
+
+docs {
+  **Show Movie - Invalid ID (String)**
+  
+  Tests error handling when providing a non-numeric ID.
+  Expected to return 404 Not Found.
+}

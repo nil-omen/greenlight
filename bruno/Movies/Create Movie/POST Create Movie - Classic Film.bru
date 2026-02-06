@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Classic Film
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "The Godfather",
+    "year": 1972,
+    "runtime": 175,
+    "genres": ["crime", "drama"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Classic Film**
+  
+  Tests creating a classic film from the 1970s.
+  
+  **Test Data:**
+  - Title: The Godfather
+  - Year: 1972
+  - Runtime: 175 minutes
+  - Genres: crime, drama
+}

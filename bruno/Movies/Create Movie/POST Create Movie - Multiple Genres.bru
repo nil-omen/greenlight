@@ -1,0 +1,46 @@
+meta {
+  name: POST Create Movie - Multiple Genres
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Inception",
+    "year": 2010,
+    "runtime": 148,
+    "genres": ["action", "sci-fi", "thriller", "mystery"]
+  }
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.be.oneOf([200, 201]);
+  });
+  
+  test("should receive the movie data back", function() {
+    expect(res.body).to.be.an('object');
+  });
+}
+
+docs {
+  **Create Movie - Multiple Genres**
+  
+  Tests creating a movie with 4 different genres.
+  
+  **Test Data:**
+  - Title: Inception
+  - Year: 2010
+  - Runtime: 148 minutes
+  - Genres: action, sci-fi, thriller, mystery
+}
