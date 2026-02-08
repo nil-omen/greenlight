@@ -22,6 +22,7 @@
           name = "greenlight-shell";
 
           nativeBuildInputs = with pkgs; [
+            (go-migrate.overrideAttrs { tags = [ "postgres" "pgx" "pgx5" ]; }) # Database migrations
             air # Live reload
             hey # HTTP load generator
             gnumake
