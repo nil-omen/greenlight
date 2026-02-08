@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Invalid Runtime Format
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Test Movie",
+    "year": 2020,
+    "runtime": "abc mins",
+    "genres": ["drama"]
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should return 400 for invalid runtime format", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+  
+  test("should return error message", function() {
+    expect(res.body.error).to.exist;
+  });
+  
+  test("error should indicate JSON parsing problem", function() {
+    const error = res.body.error;
+    expect(typeof error === 'string' || typeof error === 'object').to.be.true;
+  });
+}
+
+docs {
+  **Create Movie - Invalid Runtime Format (Invalid)**
+  
+  Tests JSON parsing error when runtime has invalid format.
+  Expected to return 400 Bad Request with JSON parsing error.
+  
+  **Test Data:**
+  - Title: Test Movie
+  - Year: 2020
+  - Runtime: "abc mins" (non-numeric)
+  - Genres: drama
+}

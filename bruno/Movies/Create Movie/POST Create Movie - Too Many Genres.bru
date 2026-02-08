@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Too Many Genres
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Test Movie",
+    "year": 2020,
+    "runtime": "120 mins",
+    "genres": ["action", "drama", "comedy", "thriller", "romance", "sci-fi"]
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for too many genres", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.genres).to.exist;
+  });
+  
+  test("error message should indicate maximum 5 genres", function() {
+    expect(res.body.error.genres).to.include("must not contain more than 5 genres");
+  });
+}
+
+docs {
+  **Create Movie - Too Many Genres (Invalid)**
+  
+  Tests validation when genres array contains more than 5 items.
+  Expected to return 422 with error: "genres": "must not contain more than 5 genres"
+  
+  **Test Data:**
+  - Title: Test Movie
+  - Year: 2020
+  - Runtime: 120 mins
+  - Genres: 6 genres (action, drama, comedy, thriller, romance, sci-fi)
+}

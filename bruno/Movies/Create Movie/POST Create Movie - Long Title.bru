@@ -18,7 +18,7 @@ body:json {
   {
     "title": "Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb",
     "year": 1964,
-    "runtime": 95,
+    "runtime": "95 mins",
     "genres": ["comedy", "war"]
   }
 }
@@ -30,6 +30,13 @@ tests {
   
   test("should receive the movie data back", function() {
     expect(res.body).to.be.an('object');
+  });
+  
+  test("response should contain expected fields", function() {
+    expect(res.body.Title || res.body.title).to.exist;
+    expect(res.body.Year || res.body.year).to.exist;
+    expect(res.body.Runtime || res.body.runtime).to.exist;
+    expect(res.body.Genres || res.body.genres).to.exist;
   });
 }
 

@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Empty Genres
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Test Movie",
+    "year": 2020,
+    "runtime": "120 mins",
+    "genres": []
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for empty genres array", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.genres).to.exist;
+  });
+  
+  test("error message should indicate at least one genre is required", function() {
+    expect(res.body.error.genres).to.include("must contain at least 1 genre");
+  });
+}
+
+docs {
+  **Create Movie - Empty Genres (Invalid)**
+  
+  Tests validation when genres array is empty.
+  Expected to return 422 with error: "genres": "must contain at least 1 genre"
+  
+  **Test Data:**
+  - Title: Test Movie
+  - Year: 2020
+  - Runtime: 120 mins
+  - Genres: []
+}

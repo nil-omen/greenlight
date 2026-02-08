@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Year Too Old
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Ancient Film",
+    "year": 1887,
+    "runtime": "120 mins",
+    "genres": ["drama"]
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for year too old", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.year).to.exist;
+  });
+  
+  test("error message should indicate year is too old", function() {
+    expect(res.body.error.year).to.include("must be greater than 1888");
+  });
+}
+
+docs {
+  **Create Movie - Year Too Old (Invalid)**
+  
+  Tests validation when year is before 1888 (earliest valid year).
+  Expected to return 422 with error: "year": "must be greater than 1888"
+  
+  **Test Data:**
+  - Title: Ancient Film
+  - Year: 1887
+  - Runtime: 120 mins
+  - Genres: drama
+}

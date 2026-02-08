@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Year In Future
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Future Film",
+    "year": 2027,
+    "runtime": "120 mins",
+    "genres": ["sci-fi"]
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for future year", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.year).to.exist;
+  });
+  
+  test("error message should indicate year cannot be in future", function() {
+    expect(res.body.error.year).to.include("must not be in the future");
+  });
+}
+
+docs {
+  **Create Movie - Year In Future (Invalid)**
+  
+  Tests validation when year is in the future.
+  Expected to return 422 with error: "year": "must not be in the future"
+  
+  **Test Data:**
+  - Title: Future Film
+  - Year: 2027
+  - Runtime: 120 mins
+  - Genres: sci-fi
+}

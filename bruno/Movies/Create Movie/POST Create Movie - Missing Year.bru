@@ -1,0 +1,55 @@
+meta {
+  name: POST Create Movie - Missing Year
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Test Movie",
+    "runtime": "120 mins",
+    "genres": ["drama"]
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for missing year", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.year).to.exist;
+  });
+  
+  test("error message should indicate year is required", function() {
+    expect(res.body.error.year).to.include("must be provided");
+  });
+}
+
+docs {
+  **Create Movie - Missing Year (Invalid)**
+  
+  Tests validation when year field is omitted.
+  Expected to return 422 with error: "year": "must be provided"
+  
+  **Test Data:**
+  - Title: Test Movie
+  - Year: (omitted)
+  - Runtime: 120 mins
+  - Genres: drama
+}

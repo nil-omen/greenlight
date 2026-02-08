@@ -1,0 +1,55 @@
+meta {
+  name: POST Create Movie - Missing Genres
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Test Movie",
+    "year": 2020,
+    "runtime": "120 mins"
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for missing genres", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.genres).to.exist;
+  });
+  
+  test("error message should indicate genres are required", function() {
+    expect(res.body.error.genres).to.include("must be provided");
+  });
+}
+
+docs {
+  **Create Movie - Missing Genres (Invalid)**
+  
+  Tests validation when genres field is omitted.
+  Expected to return 422 with error: "genres": "must be provided"
+  
+  **Test Data:**
+  - Title: Test Movie
+  - Year: 2020
+  - Runtime: 120 mins
+  - Genres: (omitted)
+}

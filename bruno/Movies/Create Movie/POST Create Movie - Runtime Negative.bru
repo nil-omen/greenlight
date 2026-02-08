@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Runtime Negative
+  type: http
+  seq: 18
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Test Movie",
+    "year": 2020,
+    "runtime": "-120 mins",
+    "genres": ["drama"]
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for negative runtime", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.runtime).to.exist;
+  });
+  
+  test("error message should indicate runtime must be positive", function() {
+    expect(res.body.error.runtime).to.include("must be a positive integer");
+  });
+}
+
+docs {
+  **Create Movie - Runtime Negative (Invalid)**
+  
+  Tests validation when runtime is negative.
+  Expected to return 422 with error: "runtime": "must be a positive integer"
+  
+  **Test Data:**
+  - Title: Test Movie
+  - Year: 2020
+  - Runtime: -120 mins
+  - Genres: drama
+}

@@ -18,7 +18,7 @@ body:json {
   {
     "title": "Blade Runner 2049",
     "year": 2017,
-    "runtime": 164,
+    "runtime": "164 mins",
     "genres": ["sci-fi", "thriller", "mystery"]
   }
 }
@@ -30,6 +30,13 @@ tests {
   
   test("should receive the movie data back", function() {
     expect(res.body).to.be.an('object');
+  });
+  
+  test("response should contain expected fields", function() {
+    expect(res.body.Title || res.body.title).to.exist;
+    expect(res.body.Year || res.body.year).to.exist;
+    expect(res.body.Runtime || res.body.runtime).to.exist;
+    expect(res.body.Genres || res.body.genres).to.exist;
   });
 }
 

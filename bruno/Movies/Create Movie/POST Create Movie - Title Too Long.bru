@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Title Too Long
+  type: http
+  seq: 12
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae.",
+    "year": 2020,
+    "runtime": "120 mins",
+    "genres": ["drama"]
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for title too long", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.title).to.exist;
+  });
+  
+  test("error message should indicate title is too long", function() {
+    expect(res.body.error.title).to.include("must not be more than 500 bytes long");
+  });
+}
+
+docs {
+  **Create Movie - Title Too Long (Invalid)**
+  
+  Tests validation when title exceeds 500 bytes.
+  Expected to return 422 with error: "title": "must not be more than 500 bytes long"
+  
+  **Test Data:**
+  - Title: 550+ character string
+  - Year: 2020
+  - Runtime: 120 mins
+  - Genres: drama
+}

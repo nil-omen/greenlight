@@ -1,0 +1,56 @@
+meta {
+  name: POST Create Movie - Duplicate Genres
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{base_url}}/v1/movies
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "title": "Test Movie",
+    "year": 2020,
+    "runtime": "120 mins",
+    "genres": ["drama", "drama"]
+  }
+}
+
+assert {
+  res.status: eq 422
+}
+
+tests {
+  test("should return 422 for duplicate genres", function() {
+    expect(res.getStatus()).to.equal(422);
+  });
+  
+  test("should return validation error", function() {
+    expect(res.body.error).to.exist;
+    expect(res.body.error.genres).to.exist;
+  });
+  
+  test("error message should indicate no duplicates allowed", function() {
+    expect(res.body.error.genres).to.include("must not contain duplicate values");
+  });
+}
+
+docs {
+  **Create Movie - Duplicate Genres (Invalid)**
+  
+  Tests validation when genres array contains duplicate values.
+  Expected to return 422 with error: "genres": "must not contain duplicate values"
+  
+  **Test Data:**
+  - Title: Test Movie
+  - Year: 2020
+  - Runtime: 120 mins
+  - Genres: ["drama", "drama"]
+}
