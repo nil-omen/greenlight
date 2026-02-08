@@ -199,34 +199,7 @@ direnv allow
 
 ## Database Migrations
 
-**Note**: Migration functionality is planned for future implementation.
-
-Once migrations are implemented, this section will cover:
-
-- Setting up a migration framework (e.g., golang-migrate, goose)
-- Creating migration files
-- Running migrations
-- Rolling back migrations
-- Migration best practices
-
-### Future Tables
-
-The Greenlight database will include the following tables:
-
-#### `movies` Table
-Stores movie information with the following columns:
-- `id` - Primary key (bigserial)
-- `created_at` - Timestamp of record creation
-- `title` - Movie title
-- `year` - Release year
-- `runtime` - Duration in minutes
-- `genres` - Array of genre strings
-- `version` - Optimistic locking version number
-
-**Planned migrations:**
-- `000001_create_movies_table.up.sql` - Create movies table
-- `000002_add_movies_indexes.up.sql` - Add indexes for performance
-- `000003_add_movies_check_constraints.up.sql` - Add validation constraints
+This project uses [golang-migrate](https://github.com/golang-migrate/migrate) for database schema migrations. The `migrate` CLI tool manages versioned SQL migration files.
 
 ### Migration Directory Structure
 
@@ -234,10 +207,157 @@ Stores movie information with the following columns:
 migrations/
 ├── 000001_create_movies_table.up.sql
 ├── 000001_create_movies_table.down.sql
-├── 000002_add_movies_indexes.up.sql
-├── 000002_add_movies_indexes.down.sql
+├── 000002_add_movies_check_constraints.up.sql
+├── 000002_add_movies_check_constraints.down.sql
 └── ...
 ```
+
+Each migration has two files:
+- `.up.sql` - Applies the migration (creates tables, adds columns, etc.)
+- `.down.sql` - Reverses the migration (drops tables, removes columns, etc.)
+
+### Creating Migrations
+
+Use `migrate create` to generate new migration files:
+
+```bash
+migrate create -seq -ext=.sql -dir=./migrations create_movies_table
+```
+
+**Flags:**
+- `-seq` - Use sequential numbering (000001, 000002, etc.) instead of timestamps
+- `-ext=.sql` - File extension for the migration files
+- `-dir=./migrations` - Directory to store migration files
+
+**Example:** Create a migration for check constraints:
+```bash
+migrate create -seq -ext=.sql -dir=./migrations add_movies_check_constraints
+```
+
+This generates:
+- `migrations/000002_add_movies_check_constraints.up.sql`
+- `migrations/000002_add_movies_check_constraints.down.sql`
+
+### Running Migrations
+
+#### Apply All Pending Migrations (Up)
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up
+```
+
+This runs all `.up.sql` files that haven't been applied yet, in sequential order.
+
+#### Apply N Migrations
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up 1
+```
+
+Applies only the next `N` pending migrations.
+
+### Rolling Back Migrations
+
+#### Rollback All Migrations (Down)
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN down
+```
+
+> **⚠️ Warning**: This rolls back ALL migrations. Use with caution!
+
+#### Rollback N Migrations
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN down 1
+```
+
+Rolls back the last `N` applied migrations.
+
+#### Confirm Rollback
+
+By default, `down` asks for confirmation. Use `-y` to skip:
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN down 1 -y
+```
+
+### Checking Migration Status
+
+#### Current Version
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN version
+```
+
+Outputs the current migration version number (e.g., `2` if migrations up to `000002_*` have been applied).
+
+### Going to a Specific Version
+
+#### Migrate to Version N
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN goto 1
+```
+
+Migrates up or down to reach the specified version:
+- If currently at version 0, runs up migrations until version 1
+- If currently at version 3, runs down migrations until version 1
+
+### Forcing a Version
+
+If a migration fails partway through, the database may be left in a "dirty" state. Use `force` to manually set the version:
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN force 1
+```
+
+> **⚠️ Warning**: Only use this after manually fixing the database state. This doesn't run any SQL—it just updates the `schema_migrations` table.
+
+### Dropping Everything
+
+```bash
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN drop
+```
+
+> **🚨 Danger**: This drops all tables in the database, including the `schema_migrations` table. Use only in development!
+
+### Common Flags Reference
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-path` | — | Path to migration files directory |
+| `-database` | — | Database connection string (DSN) |
+| `-dir` | `.` | Directory to create migration files in (for `create`) |
+| `-seq` | `false` | Use sequential numbering (000001, 000002) instead of Unix timestamps |
+| `-ext` | `""` | File extension for migration files (e.g., `.sql`) |
+| `-verbose` | `false` | Print detailed output |
+| `-version` | — | Print migrate CLI version |
+
+### Example Workflow
+
+```bash
+# 1. Create a new migration
+migrate create -seq -ext=.sql -dir=./migrations add_users_table
+
+# 2. Edit the generated .up.sql and .down.sql files
+
+# 3. Apply the migration
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up
+
+# 4. Check current version
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN version
+
+# 5. If something goes wrong, rollback
+migrate -path=./migrations -database=$GREENLIGHT_DB_DSN down 1
+```
+
+### Current Migrations
+
+| Version | Name | Description |
+|---------|------|-------------|
+| 000001 | create_movies_table | Creates the `movies` table with core columns |
+| 000002 | add_movies_check_constraints | Adds validation constraints to the `movies` table |
 
 ## Troubleshooting
 
@@ -288,6 +408,11 @@ GRANT ALL PRIVILEGES ON SCHEMA public TO greenlight;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO greenlight;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO greenlight;
 ```
+
+> **ℹ️ PostgreSQL 15+**: In PostgreSQL 15 and later, the default privileges on the `public` schema changed. You may also need to make the `greenlight` user the owner of the database:
+> ```sql
+> ALTER DATABASE greenlight OWNER TO greenlight;
+> ```
 
 ### Extension Not Available
 
