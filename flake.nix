@@ -1,3 +1,16 @@
+# Offline-First Flake
+#
+# If your network is flaky or down, use:
+#   nix develop --offline
+#
+# To load from another directory (before direnv triggers):
+#   nix develop ~/projects/greenlight --offline
+#   # or 
+#   nix develop path:~/projects/greenlight --offline
+#
+# This skips the freshness check and uses the cached flake.lock inputs directly.
+# The inputs below are pinned to direct GitHub URLs (not indirect registry names)
+# to avoid querying the global flake registry at install.determinate.systems.
 {
   description = "Greenlight Go Development Environment";
 
