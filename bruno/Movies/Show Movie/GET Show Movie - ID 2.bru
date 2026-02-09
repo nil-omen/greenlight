@@ -1,0 +1,58 @@
+meta {
+  name: GET Show Movie - ID 2
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/v1/movies/2
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.movie: isDefined
+  res.body.movie.id: eq 2
+  res.body.movie.title: eq "Black Panther"
+  res.body.movie.year: eq 2018
+  res.body.movie.runtime: eq "134 mins"
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return Black Panther movie", function() {
+    const movie = res.body.movie;
+    expect(movie.id).to.equal(2);
+    expect(movie.title).to.equal("Black Panther");
+    expect(movie.year).to.equal(2018);
+    expect(movie.runtime).to.equal("134 mins");
+  });
+  
+  test("should have correct genres", function() {
+    const genres = res.body.movie.genres;
+    expect(genres).to.be.an('array');
+    expect(genres).to.include('action');
+    expect(genres).to.include('adventure');
+  });
+  
+  test("movie should have version field", function() {
+    expect(res.body.movie.version).to.equal(1);
+  });
+}
+
+docs {
+  **Show Movie - Black Panther (ID 2)**
+  
+  Tests retrieving the Black Panther movie from the test database.
+  
+  **Test Data:**
+  - ID: 2
+  - Title: Black Panther
+  - Year: 2018
+  - Runtime: 134 mins
+  - Genres: action, adventure
+}

@@ -1,7 +1,7 @@
 meta {
   name: GET Show Movie - ID 999
   type: http
-  seq: 3
+  seq: 5
 }
 
 get {
@@ -11,24 +11,24 @@ get {
 }
 
 assert {
-  res.status: eq 200
-  res.body.movie: isDefined
-  res.body.movie.id: eq 999
+  res.status: eq 404
+  res.body.error: isDefined
 }
 
 tests {
-  test("response should be successful", function() {
-    expect(res.getStatus()).to.equal(200);
+  test("should return 404 for non-existent movie", function() {
+    expect(res.getStatus()).to.equal(404);
   });
   
-  test("should return a movie object", function() {
-    expect(res.body.movie).to.be.an('object');
-    expect(res.body.movie.id).to.equal(999);
+  test("should return error message", function() {
+    expect(res.body.error).to.be.a('string');
+    expect(res.body.error).to.include('not found');
   });
 }
 
 docs {
-  **Show Movie - Test ID 999**
+  **Show Movie - Non-existent ID 999**
   
-  Tests retrieving a movie with a large ID number.
+  Tests that requesting a movie that doesn't exist returns a 404 error.
+  Only IDs 1-4 exist in the test database.
 }

@@ -1,0 +1,57 @@
+meta {
+  name: GET Show Movie - ID 4
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/v1/movies/4
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.movie: isDefined
+  res.body.movie.id: eq 4
+  res.body.movie.title: eq "The Breakfast Club"
+  res.body.movie.year: eq 1986
+  res.body.movie.runtime: eq "96 mins"
+}
+
+tests {
+  test("response should be successful", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  
+  test("should return The Breakfast Club movie", function() {
+    const movie = res.body.movie;
+    expect(movie.id).to.equal(4);
+    expect(movie.title).to.equal("The Breakfast Club");
+    expect(movie.year).to.equal(1986);
+    expect(movie.runtime).to.equal("96 mins");
+  });
+  
+  test("should have correct genres", function() {
+    const genres = res.body.movie.genres;
+    expect(genres).to.be.an('array');
+    expect(genres).to.include('drama');
+  });
+  
+  test("movie should have version field", function() {
+    expect(res.body.movie.version).to.equal(1);
+  });
+}
+
+docs {
+  **Show Movie - The Breakfast Club (ID 4)**
+  
+  Tests retrieving The Breakfast Club movie from the test database.
+  
+  **Test Data:**
+  - ID: 4
+  - Title: The Breakfast Club
+  - Year: 1986
+  - Runtime: 96 mins
+  - Genres: drama
+}

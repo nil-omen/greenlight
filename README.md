@@ -100,16 +100,17 @@ go run ./cmd/api -port=3000 -env=staging -db-dsn="postgres://user:pass@localhost
 curl -X POST http://localhost:4000/v1/movies \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "The Shawshank Redemption",
-    "year": 1994,
-    "runtime": 142,
-    "genres": ["drama", "crime"]
+    "title": "Moana",
+    "year": 2016,
+    "runtime": "107 mins",
+    "genres": ["animation", "adventure"]
   }'
 ```
 
 **Get a movie:**
 ```bash
 curl http://localhost:4000/v1/movies/1
+# Returns: Moana (2016)
 ```
 
 ## Project Structure
@@ -188,6 +189,17 @@ direnv allow
 
 ## Testing
 
+### Test Database
+
+The test database contains the following sample movies:
+
+| ID | Title | Year | Runtime | Genres |
+|----|-------|------|---------|--------|
+| 1 | Moana | 2016 | 107 mins | animation, adventure |
+| 2 | Black Panther | 2018 | 134 mins | action, adventure |
+| 3 | Deadpool | 2016 | 108 mins | action, comedy |
+| 4 | The Breakfast Club | 1986 | 96 mins | drama |
+
 ### API Tests with Bruno
 
 The project includes a comprehensive API test suite using Bruno. Tests are located in the `bruno/` directory and cover:
@@ -195,6 +207,7 @@ The project includes a comprehensive API test suite using Bruno. Tests are locat
 - Valid movie creation scenarios
 - Invalid input validation scenarios
 - Edge cases and boundary conditions
+- Show Movie tests for all test database entries
 
 To run the tests, open the `bruno/` directory in Bruno and execute the collections.
 
