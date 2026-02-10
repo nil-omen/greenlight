@@ -14,7 +14,7 @@ import (
 	"github.com/nil-omen/greenlight/internal/data"
 )
 
-const version = "1.0.0"
+const version = "0.1.0"
 
 type config struct {
 	port int
@@ -76,8 +76,6 @@ func main() {
 	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
-
-	fmt.Println("Hello world!")
 }
 
 // The openDB() function returns a sql.DB connection pool.
