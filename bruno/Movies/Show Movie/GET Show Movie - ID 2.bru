@@ -35,12 +35,13 @@ tests {
   test("should have correct genres", function() {
     const genres = res.body.movie.genres;
     expect(genres).to.be.an('array');
+    expect(genres).to.include('sci-fi');
     expect(genres).to.include('action');
     expect(genres).to.include('adventure');
   });
   
   test("movie should have version field", function() {
-    expect(res.body.movie.version).to.equal(1);
+    expect(res.body.movie.version).to.equal(2);
   });
 }
 
@@ -54,5 +55,5 @@ docs {
   - Title: Black Panther
   - Year: 2018
   - Runtime: 134 mins
-  - Genres: action, adventure
+  - Genres: sci-fi, action, adventure
 }

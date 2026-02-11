@@ -1,0 +1,39 @@
+meta {
+  name: GET Show Movie - ID 3 (DELETED)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/v1/movies/3
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 404
+  res.body.error: isDefined
+}
+
+tests {
+  test("response should fail to find a record", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+  
+  test("response should state that no resource was found", function() {
+    expect(res.body.error).to.equal("the requested resource could not be found")
+  });
+}
+
+docs {
+  **Show Movie - Deadpool (ID 3)** ***(DELETED)***
+  
+  Tests retrieving the Deadpool movie from the test database.
+  
+  **Test Data:**
+  - ID: 3
+  - Title: Deadpool
+  - Year: 2016
+  - Runtime: 108 mins
+  - Genres: action, comedy
+}
