@@ -5,7 +5,7 @@
 #
 # To load from another directory (before direnv triggers):
 #   nix develop ~/projects/greenlight --offline
-#   # or 
+#   # or
 #   nix develop path:~/projects/greenlight --offline
 #
 # This skips the freshness check and uses the cached flake.lock inputs directly.
@@ -35,6 +35,7 @@
           name = "greenlight-shell";
 
           nativeBuildInputs = with pkgs; [
+            jq # just to play with json responses
             (go-migrate.overrideAttrs { tags = [ "postgres" "pgx" "pgx5" ]; }) # Database migrations
             air # Live reload
             hey # HTTP load generator
