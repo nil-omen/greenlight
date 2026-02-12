@@ -15,7 +15,7 @@ assert {
   res.body.movie: isDefined
   res.body.movie.id: eq 4
   res.body.movie.title: eq "The Breakfast Club"
-  res.body.movie.year: eq 1986
+  res.body.movie.year: eq 1985
   res.body.movie.runtime: eq "96 mins"
 }
 
@@ -23,35 +23,35 @@ tests {
   test("response should be successful", function() {
     expect(res.getStatus()).to.equal(200);
   });
-  
+
   test("should return The Breakfast Club movie", function() {
     const movie = res.body.movie;
     expect(movie.id).to.equal(4);
     expect(movie.title).to.equal("The Breakfast Club");
-    expect(movie.year).to.equal(1986);
+    expect(movie.year).to.equal(1985);
     expect(movie.runtime).to.equal("96 mins");
   });
-  
+
   test("should have correct genres", function() {
     const genres = res.body.movie.genres;
     expect(genres).to.be.an('array');
     expect(genres).to.include('drama');
   });
-  
+
   test("movie should have version field", function() {
-    expect(res.body.movie.version).to.equal(1);
+    expect(res.body.movie.version).to.equal(2);
   });
 }
 
 docs {
   **Show Movie - The Breakfast Club (ID 4)**
-  
+
   Tests retrieving The Breakfast Club movie from the test database.
-  
+
   **Test Data:**
   - ID: 4
   - Title: The Breakfast Club
-  - Year: 1986
+  - Year: 1985
   - Runtime: 96 mins
   - Genres: drama
 }
