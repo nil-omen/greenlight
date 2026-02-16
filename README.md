@@ -56,6 +56,14 @@ Greenlight is a RESTful API service that provides endpoints for managing a movie
    export GREENLIGHT_DB_DSN="postgres://greenlight:YOUR_PASSWORD_HERE@localhost/greenlight?sslmode=disable"
    ```
 
+   You can also configure the following flags:
+   - `-db-max-open-conns` (default: 25)
+   - `-db-max-idle-conns` (default: 25)
+   - `-db-max-idle-time` (default: 15m)
+   - `-limiter-rps` (default: 2)
+   - `-limiter-burst` (default: 4)
+   - `-limiter-enabled` (default: true)
+
 4. **Run the application**
    ```bash
    # Development mode with hot reload
@@ -77,6 +85,12 @@ The application accepts the following command-line flags:
 | `-port` | `4000` | API server port |
 | `-env` | `development` | Environment (development\|staging\|production) |
 | `-db-dsn` | `$GREENLIGHT_DB_DSN` | PostgreSQL Data Source Name |
+| `-db-max-open-conns` | `25` | PostgreSQL max open connections |
+| `-db-max-idle-conns` | `25` | PostgreSQL max idle connections |
+| `-db-max-idle-time` | `15m` | PostgreSQL max connection idle time |
+| `-limiter-rps` | `2` | Rate limiter maximum requests per second |
+| `-limiter-burst` | `4` | Rate limiter maximum burst |
+| `-limiter-enabled` | `true` | Enable rate limiter |
 
 ### Example
 
@@ -90,8 +104,11 @@ go run ./cmd/api -port=3000 -env=staging -db-dsn="postgres://user:pass@localhost
 - **GET** `/v1/healthcheck` - API health status and version information
 
 ### Movies
-- **GET** `/v1/movies/:id` - Retrieve a specific movie by ID
+- **GET** `/v1/movies` - List movies (supports pagination and partial searching)
 - **POST** `/v1/movies` - Create a new movie
+- **GET** `/v1/movies/:id` - Retrieve a specific movie by ID
+- **PATCH** `/v1/movies/:id` - Update a specific movie
+- **DELETE** `/v1/movies/:id` - Delete a specific movie
 
 ### Example Request
 
@@ -227,6 +244,28 @@ just test-race
 just test-run TestMovieValidation
 ```
 
+### Seed Data (Quick Start)
+
+To quickly populate your database for testing, you can use the following commands:
+
+```bash
+# Create "Moana"
+BODY='{"title":"Moana","year":2016,"runtime":"107 mins", "genres":["animation","adventure"]}' 
+curl -i -d "$BODY" localhost:4000/v1/movies
+
+# Create "Black Panther"
+BODY='{"title":"Black Panther","year":2018,"runtime":"134 mins","genres":["action","adventure"]}' 
+curl -d "$BODY" localhost:4000/v1/movies
+
+# Create "Deadpool"
+BODY='{"title":"Deadpool","year":2016, "runtime":"108 mins","genres":["action","comedy"]}' 
+curl -d "$BODY" localhost:4000/v1/movies
+
+# Create "The Breakfast Club"
+BODY='{"title":"The Breakfast Club","year":1986, "runtime":"96 mins","genres":["drama"]}' 
+curl -d "$BODY" localhost:4000/v1/movies
+```
+
 ## Database
 
 The application uses PostgreSQL for data persistence. See [postgresql_setup.md](postgresql_setup.md) for:
@@ -239,11 +278,11 @@ The application uses PostgreSQL for data persistence. See [postgresql_setup.md](
 
 ## Roadmap
 
-- [ ] Database migrations system
-- [ ] Additional CRUD endpoints (UPDATE, DELETE, LIST)
-- [ ] Pagination and filtering
+- [x] Database migrations system
+- [x] Additional CRUD endpoints (UPDATE, DELETE, LIST)
+- [x] Pagination and filtering
 - [ ] Authentication and authorization
-- [ ] Rate limiting
+- [x] Rate limiting
 - [ ] Graceful shutdown
 - [ ] Metrics and monitoring
 

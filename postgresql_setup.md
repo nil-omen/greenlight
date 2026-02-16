@@ -201,6 +201,27 @@ direnv allow
 
 This project uses [golang-migrate](https://github.com/golang-migrate/migrate) for database schema migrations. The `migrate` CLI tool manages versioned SQL migration files.
 
+### Installation
+
+#### Option 1: Nix (Recommended)
+If you are using the `nix develop` environment (as per the `flake.nix`), the `migrate` tool is already installed and compiled with the necessary `postgres`, `pgx`, and `pgx5` tags. You don't need to do anything else.
+
+#### Option 2: Pre-built Binary (Linux/Mac/Windows)
+You can download a pre-built binary from the [releases page](https://github.com/golang-migrate/migrate/releases).
+
+**Linux Example:**
+```bash
+curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.0/migrate.linux-amd64.tar.gz | tar xvz
+sudo mv migrate /usr/local/bin/
+```
+
+#### Option 3: Go Toolchain
+If you prefer to install it using Go, you **must** compile it with the `postgres` tag:
+
+```bash
+go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+```
+
 ### Migration Directory Structure
 
 ```
