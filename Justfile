@@ -2,7 +2,6 @@
 # it's a copy from my snippetbox project
 
 # Variables
-
 project_name := "greenlight"
 binary_name := project_name
 sources := "./cmd/api"
@@ -120,7 +119,7 @@ tidy:
     @echo "📦 Tidying modules..."
     go mod tidy
 
-# Clean build artifacts
+# Clean build artifacts and tls and tmp folders
 clean:
     @echo "🗑️  Cleaning build artifacts..."
     rm -rf {{ output_dir }}
