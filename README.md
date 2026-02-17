@@ -104,7 +104,13 @@ go run ./cmd/api -port=3000 -env=staging -db-dsn="postgres://user:pass@localhost
 - **GET** `/v1/healthcheck` - API health status and version information
 
 ### Movies
-- **GET** `/v1/movies` - List movies (supports pagination and partial searching)
+- **GET** `/v1/movies` - List movies
+  - **Query Parameters**:
+    - `title`: Filter by title (partial match)
+    - `genres`: Filter by genres (comma-separated, e.g., ["action,adventure"])
+    - `page`: Page number (default: 1)
+    - `page_size`: Records per page (default: 20, max: 100)
+    - `sort`: Sort field (default: "id"). Supported: `id`, `title`, `year`, `runtime` (prefix with `-` for descending order, e.g., `-year`)
 - **POST** `/v1/movies` - Create a new movie
 - **GET** `/v1/movies/:id` - Retrieve a specific movie by ID
 - **PATCH** `/v1/movies/:id` - Update a specific movie
@@ -283,6 +289,6 @@ The application uses PostgreSQL for data persistence. See [postgresql_setup.md](
 - [x] Pagination and filtering
 - [ ] Authentication and authorization
 - [x] Rate limiting
-- [ ] Graceful shutdown
+- [x] Graceful shutdown
 - [ ] Metrics and monitoring
 
