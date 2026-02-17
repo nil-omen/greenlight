@@ -171,7 +171,9 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 	if err != nil {
 		return nil, Metadata{}, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 
 	totalRecords := 0
 	movies := []*Movie{}

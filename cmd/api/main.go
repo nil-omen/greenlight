@@ -62,7 +62,11 @@ func main() {
 		logger.Error(err.Error())
 		os.Exit(1)
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error(err.Error())
+		}
+	}()
 
 	logger.Info("database connection pool established")
 
@@ -103,7 +107,7 @@ func openDB(cfg config) (*sql.DB, error) {
 
 	err = db.PingContext(ctx)
 	if err != nil {
-		db.Close()
+		_ = db.Close()
 		return nil, err
 	}
 

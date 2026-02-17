@@ -47,7 +47,7 @@
             delve # Debugger
             pkg-config # Helper to find C libraries
             upx # Binary compression tool
-            # golangci-lint
+            golangci-lint
           ];
 
           buildInputs = with pkgs; [
