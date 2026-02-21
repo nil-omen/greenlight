@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"sync"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -43,6 +44,7 @@ type application struct {
 	logger *slog.Logger
 	models data.Models
 	mailer *mailer.Mailer
+	wg     sync.WaitGroup
 }
 
 func main() {
@@ -97,8 +99,10 @@ func main() {
 	}
 
 	err = app.serve()
-	logger.Error(err.Error())
-	os.Exit(1)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
 }
 
 // The openDB() function returns a sql.DB connection pool.

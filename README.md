@@ -277,7 +277,10 @@ BODY='{"title":"The Breakfast Club","year":1986, "runtime":"96 mins","genres":["
 And for users table:
 
 ```bash
-BODY='{"name": "Alice Smith", "email": "alice@example.com", "password": "pa55word"}' curl -i -d "$BODY" localhost:4000/v1/users
+BODY='{"name": "Alice Smith", "email": "alice@example.com", "password": "pa55word"}' curl -d "$BODY" localhost:4000/v1/users
+BODY='{"name": "Bob Jones", "email": "bob@example.com", "password": "pa55word"}' curl -d "$BODY" localhost:4000/v1/users
+BODY='{"name": "Carol Smith", "email": "carol@example.com", "password": "pa55word"}' curl -d "$BODY" localhost:4000/v1/users
+BODY='{"name": "Dave Smith", "email": "dave@example.com", "password": "pa55word"}' curl -d "$BODY" localhost:4000/v1/users
 ```
 
 ## Database
