@@ -48,6 +48,7 @@
             pkg-config # Helper to find C libraries
             upx # Binary compression tool
             golangci-lint
+            go-tools # (Provides the staticcheck binary)
           ];
 
           buildInputs = with pkgs; [
