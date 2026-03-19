@@ -1,11 +1,10 @@
-# First version of justfile for greenlight
-# it's a copy from my snippetbox project
 
 # Variables
 project_name := "greenlight"
-binary_name := project_name
+binary_name := "api"
 sources := "./cmd/api"
 output_dir := "./bin"
+production_host := "ubuntu-gl.meteor-alphard.ts.net"
 
 # Default task: list all available recipes
 default:
@@ -21,12 +20,27 @@ completion-fish:
 # Run the application (Dev mode)
 run:
     @echo "🚀 Running application..."
-    go run {{ sources }}
+    go run {{ sources }} -db-dsn=$GREENLIGHT_DB_DSN
 
 # Run with hot reloading (requires air)
 run-hot:
     @echo "🔥 Running with hot-reloading..."
     air
+
+# Connect to the database using psql
+db-psql:
+    psql $GREENLIGHT_DB_DSN
+
+# Create a new database migration
+db-migrations-new name:
+    @echo 'Creating migration files for {{name}}...'
+    migrate create -seq -ext=.sql -dir=./migrations {{name}}
+
+# Apply all up database migrations
+[confirm]
+db-migrations-up:
+    @echo 'Running up migrations...'
+    migrate -path ./migrations -database $GREENLIGHT_DB_DSN up
 
 # Build the binary for production
 build:
@@ -34,6 +48,13 @@ build:
     @mkdir -p {{ output_dir }}
     go build -o {{ output_dir }}/{{ binary_name }} {{ sources }}
     @echo "✅ Build complete: {{ output_dir }}/{{ binary_name }}"
+
+# Build the binary for linux_amd64 (production remote)
+build-linux:
+    @echo "🔨 Building binary for linux_amd64..."
+    @mkdir -p {{ output_dir }}/linux_amd64
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s" -o {{ output_dir }}/linux_amd64/{{ binary_name }} {{ sources }}
+    @echo "✅ Build complete: {{ output_dir }}/linux_amd64/{{ binary_name }}"
 
 # Build optimized release binary (smaller size, same speed)
 build-release:
@@ -97,12 +118,23 @@ test-run TEST=".":
 # Run tests with race detector enabled
 test-race:
     @echo "🏃 Running tests with race detector..."
-    go test -race -v ./...
+    CGO_ENABLED=1 go test -race -v ./...
 
 # Run go vet
 vet:
     @echo "🧐 Running go vet..."
     go vet ./...
+
+# Run quality control checks (tidy, vet, staticcheck, test -race)
+audit:
+    @echo 'Checking module dependencies...'
+    go mod tidy -diff
+    go mod verify
+    @echo 'Vetting code...'
+    go vet ./...
+    staticcheck ./...
+    @echo 'Running tests...'
+    CGO_ENABLED=1 go test -race -vet=off ./...
 
 # Lint the code (requires golangci-lint)
 lint:
@@ -120,6 +152,7 @@ tidy:
     go mod tidy
 
 # Clean build artifacts and tls and tmp folders
+[confirm]
 clean:
     @echo "🗑️  Cleaning build artifacts..."
     rm -rf {{ output_dir }}
@@ -133,3 +166,25 @@ cert:
     @mkdir -p tls
     cd tls && go run "$(go env GOROOT)/src/crypto/tls/generate_cert.go" --rsa-bits=2048 --host localhost
     @echo "✅ Certificates generated in ./tls"
+
+# Connect to the production server
+production-connect:
+    ssh greenlight@{{production_host}}
+
+# Deploy the api to production
+[confirm]
+production-deploy: build-linux
+    rsync -P {{ output_dir }}/linux_amd64/{{ binary_name }} greenlight@{{production_host}}:~
+    rsync -rP --delete ./migrations greenlight@{{production_host}}:~
+    rsync -P ./remote/production/api.service greenlight@{{production_host}}:~
+    rsync -P ./remote/production/Caddyfile greenlight@{{production_host}}:~
+    ssh -t greenlight@{{production_host}} '\
+        source /etc/environment \
+        && migrate -path ~/migrations -database $GREENLIGHT_DB_DSN up \
+        && sudo mv ~/api.service /etc/systemd/system/ \
+        && sudo systemctl daemon-reload \
+        && sudo systemctl enable api \
+        && sudo systemctl restart --no-pager api \
+        && sudo mv ~/Caddyfile /etc/caddy/ \
+        && sudo systemctl restart --no-pager caddy \
+    '

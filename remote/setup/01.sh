@@ -54,6 +54,10 @@ sudo -i -u postgres psql -c "CREATE DATABASE greenlight"
 sudo -i -u postgres psql -d greenlight -c "CREATE EXTENSION IF NOT EXISTS citext"
 sudo -i -u postgres psql -d greenlight -c "CREATE ROLE greenlight WITH LOGIN PASSWORD '${DB_PASSWORD}'"
 
+# Fix permissions for PostgreSQL 15+ (Allows the user to run migrations)
+sudo -i -u postgres psql -c "ALTER DATABASE greenlight OWNER TO greenlight"
+sudo -i -u postgres psql -d greenlight -c "ALTER SCHEMA public OWNER TO greenlight"
+
 # Add the DSN to the system-wide environment variables.
 echo "GREENLIGHT_DB_DSN='postgres://greenlight:${DB_PASSWORD}@localhost/greenlight'" >> /etc/environment
 

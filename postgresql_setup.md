@@ -239,7 +239,13 @@ Each migration has two files:
 
 ### Creating Migrations
 
-Use `migrate create` to generate new migration files:
+Use `Just` to simplify creating migrations. You can generate new migration files by running:
+
+```bash
+just db-migrations-new create_movies_table
+```
+
+Alternatively, using the raw `migrate` CLI:
 
 ```bash
 migrate create -seq -ext=.sql -dir=./migrations create_movies_table
@@ -262,6 +268,14 @@ This generates:
 ### Running Migrations
 
 #### Apply All Pending Migrations (Up)
+
+You can cleanly apply all pending migrations using `Just`:
+
+```bash
+just db-migrations-up
+```
+
+Alternatively, using the raw `migrate` CLI:
 
 ```bash
 migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up
@@ -359,12 +373,12 @@ migrate -path=./migrations -database=$GREENLIGHT_DB_DSN drop
 
 ```bash
 # 1. Create a new migration
-migrate create -seq -ext=.sql -dir=./migrations add_users_table
+just db-migrations-new add_users_table
 
 # 2. Edit the generated .up.sql and .down.sql files
 
 # 3. Apply the migration
-migrate -path=./migrations -database=$GREENLIGHT_DB_DSN up
+just db-migrations-up
 
 # 4. Check current version
 migrate -path=./migrations -database=$GREENLIGHT_DB_DSN version

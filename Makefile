@@ -75,4 +75,33 @@ audit:
 build/api:
 	@echo 'Building cmd/api...'
 	go build -ldflags='-s' -o=./bin/api ./cmd/api
-	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
+
+# ==================================================================================== #
+# PRODUCTION
+# ==================================================================================== #
+
+production_host = 'ubuntu-gl.meteor-alphard.ts.net'
+
+## production/connect: connect to the production server
+.PHONY: production/connect
+production/connect:
+	ssh greenlight@${production_host}
+
+## production/deploy/api: deploy the api to production
+.PHONY: production/deploy/api
+production/deploy/api:
+	rsync -P ./bin/linux_amd64/api greenlight@${production_host}:~
+	rsync -rP --delete ./migrations greenlight@${production_host}:~
+	rsync -P ./remote/production/api.service greenlight@${production_host}:~
+	rsync -P ./remote/production/Caddyfile greenlight@${production_host}:~
+	ssh -t greenlight@${production_host} '\
+	source /etc/environment \
+	&& migrate -path ~/migrations -database $$GREENLIGHT_DB_DSN up \
+	&& sudo mv ~/api.service /etc/systemd/system/ \
+	&& sudo systemctl daemon-reload \
+	&& sudo systemctl enable api \
+	&& sudo systemctl restart --no-pager api \
+	&& sudo mv ~/Caddyfile /etc/caddy/ \
+	&& sudo systemctl restart --no-pager caddy \
+	'

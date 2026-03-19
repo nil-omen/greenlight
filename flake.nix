@@ -57,7 +57,7 @@
 
           # Environment Variables
           shellHook = ''
-            export CGO_ENABLED=1
+            export CGO_ENABLED=0
             echo "❄️  Development environment loaded!"
           '';
         };
