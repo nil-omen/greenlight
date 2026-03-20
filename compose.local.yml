@@ -54,8 +54,6 @@ services:
   api:
     build: .
     container_name: greenlight-api
-    ports:
-      - "4000:4000"
     depends_on:
       db:
         condition: service_healthy
