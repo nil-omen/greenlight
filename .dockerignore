@@ -1,0 +1,23 @@
+# Build artifacts (keep bin/ — we need the pre-built binary)
+tmp/
+
+# TLS certs
+tls/
+
+# IDE
+.idea/
+.vscode/
+.gemini/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!migrations/*.sql
+bruno/
+
+# Container files (don't recursively include)
+compose*.yml
+Dockerfile

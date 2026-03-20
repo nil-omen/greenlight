@@ -1,0 +1,152 @@
+# ============================================================================ #
+# Greenlight — Production Compose (with Tailscale)
+# ============================================================================ #
+# Usage:
+#   1. Replace TS_AUTHKEY with your Tailscale auth key
+#   2. Set your DB password and SMTP credentials below
+#   3. Run: docker compose up -d   (or: podman compose up -d)
+# ============================================================================ #
+
+# ---------------------------------------------------------------------------- #
+
+# Services
+# ---------------------------------------------------------------------------- #
+services:
+
+  # ── Tailscale Sidecar ─────────────────────────────────────────────────────
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: greenlight-ts
+    hostname: greenlight
+    environment:
+      - TS_AUTHKEY=tskey-auth-xxxxx           # ← Replace with your auth key
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_SERVE_CONFIG=/config/serve.json
+      - TS_USERSPACE=true
+    entrypoint:
+      - sh
+      - -c
+      - |
+        mkdir -p /config
+        cat << 'EOF' > /config/serve.json
+        {
+          "TCP": {
+            "443": { "HTTPS": true }
+          },
+          "Web": {
+            "$${TS_CERT_DOMAIN}:443": {
+              "Handlers": {
+                "/": { "Proxy": "http://127.0.0.1:80" }
+              }
+            }
+          },
+          "AllowFunnel": {
+            "$${TS_CERT_DOMAIN}:443": true
+          }
+        }
+        EOF
+        exec /usr/local/bin/containerboot
+    volumes:
+      - tailscale-state:/var/lib/tailscale
+    networks:
+      - greenlight
+    restart: unless-stopped
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  db:
+    image: postgres:17-alpine
+    container_name: greenlight-db
+    environment:
+      POSTGRES_PASSWORD: superuser_password   # Superuser password
+      GREENLIGHT_PASSWORD: changeme           # Password for the greenlight role
+    entrypoint:
+      - bash
+      - -c
+      - |
+        cat << 'EOF' > /docker-entrypoint-initdb.d/init.sh
+        #!/bin/bash
+        psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "$$POSTGRES_DB" <<-EOSQL
+            CREATE DATABASE greenlight;
+            \c greenlight
+            CREATE ROLE greenlight WITH LOGIN PASSWORD '$$GREENLIGHT_PASSWORD';
+            CREATE EXTENSION IF NOT EXISTS citext;
+            ALTER DATABASE greenlight OWNER TO greenlight;
+            ALTER SCHEMA public OWNER TO greenlight;
+        EOSQL
+        EOF
+        chmod +x /docker-entrypoint-initdb.d/init.sh
+        exec /usr/local/bin/docker-entrypoint.sh postgres
+    volumes:
+      - greenlight-data:/var/lib/postgresql/data
+    networks:
+      - greenlight
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U greenlight"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Greenlight API ────────────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: greenlight-api
+    network_mode: service:tailscale
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GREENLIGHT_DB_DSN: postgres://${DB_USER}:${DB_PASSWORD}@db/greenlight?sslmode=disable
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: greenlight
+      DB_PASSWORD: changeme
+      API_PORT: "4000"
+      API_ENV: production
+      DB_MAX_OPEN_CONNS: "25"
+      DB_MAX_IDLE_CONNS: "25"
+      DB_MAX_IDLE_TIME: 15m
+      LIMITER_ENABLED: "true"
+      LIMITER_RPS: "2"
+      LIMITER_BURST: "4"
+      SMTP_HOST: sandbox.smtp.mailtrap.io    # ← Configure your SMTP provider
+      SMTP_PORT: "587"
+      SMTP_USERNAME: ""                      # ← Set SMTP username
+      SMTP_PASSWORD: ""                      # ← Set SMTP password
+      SMTP_SENDER: "Greenlight <no-reply@greenlight.local>"
+      CORS_TRUSTED_ORIGINS: ""
+    restart: unless-stopped
+
+  # ── Caddy Reverse Proxy ───────────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: greenlight-caddy
+    network_mode: service:tailscale
+    depends_on:
+      - api
+    entrypoint:
+      - sh
+      - -c
+      - |
+        cat << 'EOF' > /etc/caddy/Caddyfile
+        :80 {
+            respond /debug/* "Not Permitted" 403
+            reverse_proxy localhost:4000
+        }
+        EOF
+        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+    restart: unless-stopped
+
+# ---------------------------------------------------------------------------- #
+# Networks
+# ---------------------------------------------------------------------------- #
+networks:
+  greenlight:
+
+# ---------------------------------------------------------------------------- #
+# Volumes
+# ---------------------------------------------------------------------------- #
+volumes:
+  greenlight-data:
+  tailscale-state:
+

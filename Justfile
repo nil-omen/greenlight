@@ -5,6 +5,7 @@ binary_name := "api"
 sources := "./cmd/api"
 output_dir := "./bin"
 production_host := "ubuntu-gl.meteor-alphard.ts.net"
+container_cmd := "podman"                    # Change to "docker" if needed
 
 # Default task: list all available recipes
 default:
@@ -188,3 +189,44 @@ production-deploy: build-linux
         && sudo mv ~/Caddyfile /etc/caddy/ \
         && sudo systemctl restart --no-pager caddy \
     '
+
+# ==================================================================================== #
+# CONTAINERS
+# ==================================================================================== #
+
+# Start container stack with Tailscale (production)
+container-up: build-linux
+    @echo "🐳 Starting production containers (with Tailscale)..."
+    {{ container_cmd }} compose -f compose.yml up -d --build
+
+# Start container stack without Tailscale (local)
+container-up-local: build-linux
+    @echo "🐳 Starting local containers..."
+    {{ container_cmd }} compose -f compose.local.yml up -d --build
+
+# Stop and remove containers
+container-down:
+    @echo "🛑 Stopping containers..."
+    {{ container_cmd }} compose -f compose.yml down 2>/dev/null; \
+    {{ container_cmd }} compose -f compose.local.yml down 2>/dev/null; \
+    true
+
+# Tail container logs
+container-logs service="":
+    @if [ -n "{{ service }}" ]; then \
+        {{ container_cmd }} compose -f compose.yml logs -f {{ service }} 2>/dev/null || \
+        {{ container_cmd }} compose -f compose.local.yml logs -f {{ service }}; \
+    else \
+        {{ container_cmd }} compose -f compose.yml logs -f 2>/dev/null || \
+        {{ container_cmd }} compose -f compose.local.yml logs -f; \
+    fi
+
+# Force rebuild and restart containers
+container-rebuild: build-linux
+    @echo "🔄 Rebuilding containers..."
+    {{ container_cmd }} compose -f compose.yml up -d --build --force-recreate
+
+# Show status of running containers
+container-ps:
+    @{{ container_cmd }} compose -f compose.yml ps 2>/dev/null || \
+    {{ container_cmd }} compose -f compose.local.yml ps

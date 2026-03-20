@@ -1,0 +1,119 @@
+# ============================================================================ #
+# Greenlight — Local Compose (without Tailscale)
+# ============================================================================ #
+# Usage:
+#   1. Set your domain, DB password, and SMTP credentials below
+#   2. For HTTPS: allow unprivileged ports:
+#      sudo sysctl -w net.ipv4.ip_unprivileged_port_start=80
+#      (persist in /etc/sysctl.conf for reboots)
+#   3. Run: podman compose -f compose.local.yml up -d --build
+# ============================================================================ #
+
+# ---------------------------------------------------------------------------- #
+# Inline configuration files
+# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+# Services
+# ---------------------------------------------------------------------------- #
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  db:
+    image: postgres:17-alpine
+    container_name: greenlight-db
+    environment:
+      POSTGRES_PASSWORD: pa55word1234         # Superuser password
+      GREENLIGHT_PASSWORD: pa55word1234       # Password for the greenlight role
+    entrypoint:
+      - bash
+      - -c
+      - |
+        cat << 'EOF' > /docker-entrypoint-initdb.d/init.sh
+        #!/bin/bash
+        psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "$$POSTGRES_DB" <<-EOSQL
+            CREATE DATABASE greenlight;
+            \c greenlight
+            CREATE ROLE greenlight WITH LOGIN PASSWORD '$$GREENLIGHT_PASSWORD';
+            CREATE EXTENSION IF NOT EXISTS citext;
+            ALTER DATABASE greenlight OWNER TO greenlight;
+            ALTER SCHEMA public OWNER TO greenlight;
+        EOSQL
+        EOF
+        chmod +x /docker-entrypoint-initdb.d/init.sh
+        exec /usr/local/bin/docker-entrypoint.sh postgres
+    volumes:
+      - greenlight-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U greenlight"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Greenlight API ────────────────────────────────────────────────────────
+  api:
+    build: .
+    container_name: greenlight-api
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GREENLIGHT_DB_DSN: postgres://${DB_USER}:${DB_PASSWORD}@db/greenlight?sslmode=disable
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USER: greenlight
+      DB_PASSWORD: pa55word1234
+      API_PORT: "4000"
+      API_ENV: production
+      DB_MAX_OPEN_CONNS: "25"
+      DB_MAX_IDLE_CONNS: "25"
+      DB_MAX_IDLE_TIME: 15m
+      LIMITER_ENABLED: "true"
+      LIMITER_RPS: "2"
+      LIMITER_BURST: "4"
+      SMTP_HOST: sandbox.smtp.mailtrap.io    # ← Configure your SMTP provider
+      SMTP_PORT: "587"
+      SMTP_USERNAME: ""                      # ← Set SMTP username
+      SMTP_PASSWORD: ""                      # ← Set SMTP password
+      SMTP_SENDER: "Greenlight <no-reply@greenlight.local>"
+      CORS_TRUSTED_ORIGINS: ""
+    restart: unless-stopped
+
+  # ── Caddy Reverse Proxy ───────────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    container_name: greenlight-caddy
+    ports:
+      - "9876:80"                              # HTTP (required for ACME challenge)
+      - "443:443"                            # HTTPS
+    depends_on:
+      - api
+    entrypoint:
+      - sh
+      - -c
+      - |
+        cat << 'EOF' > /etc/caddy/Caddyfile
+        # ── Replace with your domain for automatic HTTPS ──
+        # Example: api.example.com
+        # Caddy auto-provisions TLS certificates from Let's Encrypt
+        # when a real domain is used instead of :80
+        :80 {
+            respond /debug/* "Not Permitted" 403
+            reverse_proxy api:4000
+        }
+        EOF
+        exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+    volumes:
+      - caddy-data:/data                     # Persists TLS certificates
+      - caddy-config-vol:/config             # Persists Caddy config
+    restart: unless-stopped
+
+# ---------------------------------------------------------------------------- #
+# Volumes
+# ---------------------------------------------------------------------------- #
+volumes:
+  greenlight-data:
+  caddy-data:
+  caddy-config-vol:

@@ -168,6 +168,10 @@ greenlight/
 ├── bin/                 # Compiled binaries
 ├── tls/                 # Local self-signed certificates
 ├── Justfile             # Build commands and tasks
+├── Dockerfile           # Multi-stage container build
+├── compose.yml          # Production compose (with Tailscale)
+├── compose.local.yml    # Local compose (no Tailscale)
+├── docker-entrypoint.sh # Container entrypoint (DB wait + migrate)
 ├── go.mod               # Go module definition
 ├── flake.nix            # Nix development environment
 └── .air.toml            # Air configuration for hot reloading
@@ -245,6 +249,69 @@ just production-deploy
 
 The application uses PostgreSQL for data persistence. See [postgresql_setup.md](postgresql_setup.md) for detailed instructions about setting up the environment.
 
+## Container Deployment
+
+As an alternative to the remote server setup, you can run the full stack (API + PostgreSQL + Caddy) in containers using Docker or Podman.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose **or** [Podman](https://podman.io/) with `podman-compose`
+
+### Option 1: Production with Tailscale (HTTPS)
+
+The `compose.yml` file includes a Tailscale sidecar that handles HTTPS and domain routing automatically.
+
+1. **Get a Tailscale auth key** from [Tailscale Admin Console](https://login.tailscale.com/admin/settings/keys)
+2. **Edit `compose.yml`** — set your `TS_AUTHKEY`, database password, and SMTP credentials directly in the file
+3. **Start the stack:**
+    ```bash
+    just container-up
+    # or manually: podman compose up -d --build
+    ```
+
+### Option 2: Local Development (No Tailscale)
+
+The `compose.local.yml` file runs the stack without Tailscale, exposing Caddy on port 80 and 443.
+
+1. **Allow binding to privileged ports (Linux/Podman)**
+   By default in Linux (including Fedora), regular users cannot run programs that listen on ports below 1024. If Caddy tries to bind to port 80 or 443 with rootless Podman, the kernel blocks it.
+   ```bash
+   # Tell the kernel to allow standard users to bind ports 80 and above
+   sudo sysctl -w net.ipv4.ip_unprivileged_port_start=80
+   
+   # Make it permanent across reboots
+   echo "net.ipv4.ip_unprivileged_port_start=80" | sudo tee -a /etc/sysctl.conf
+   ```
+   > **What about SELinux on Fedora?** Changing this `sysctl` value is the perfectly safe, officially recommended way by the Podman team to expose low ports rootlessly. Fedora's default SELinux policies for rootless Podman (`container_t`) will allow binding to these ports once the kernel `sysctl` restriction is lifted. You don't need any extra `semanage port` commands for this.
+
+2. **Edit `compose.local.yml`** — set your database password and SMTP credentials, and optionally replace `:80` in the Caddyfile with your domain for automatic HTTPS.
+
+3. **Start the stack:**
+    ```bash
+    just container-up-local
+    # or manually: podman compose -f compose.local.yml up -d --build
+    ```
+4. **Test the API:**
+    ```bash
+    curl http://localhost/v1/healthcheck
+    ```
+
+### Container Commands
+
+The Justfile uses a `container_cmd` variable (defaults to `podman`). Change it to `"docker"` in the Justfile if you use Docker instead.
+
+```bash
+just container-up          # Start production stack (with Tailscale)
+just container-up-local    # Start local stack (no Tailscale)
+just container-down        # Stop and remove all containers
+just container-logs        # Tail logs from all services
+just container-logs api    # Tail logs from a specific service
+just container-ps          # Show container status
+just container-rebuild     # Force rebuild and restart
+```
+
+> **Note**: The compose files use inline `configs` blocks — all configuration (Caddyfile, DB init scripts, Tailscale serve config) is self-contained in the compose file. No external config files needed.
+
 ## Roadmap
 
 - [x] Database migrations system
@@ -254,3 +321,4 @@ The application uses PostgreSQL for data persistence. See [postgresql_setup.md](
 - [x] Rate limiting
 - [x] Graceful shutdown
 - [x] Metrics and monitoring
+- [x] Container deployment (Docker/Podman)
