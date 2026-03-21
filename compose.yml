@@ -19,7 +19,7 @@ services:
     container_name: greenlight-ts
     hostname: greenlight
     environment:
-      - TS_AUTHKEY=tskey-auth-xxxxx           # ← Replace with your auth key
+      - TS_AUTHKEY=tskey-auth-xxxxx
       - TS_STATE_DIR=/var/lib/tailscale
       - TS_SERVE_CONFIG=/config/serve.json
       - TS_USERSPACE=true
@@ -36,7 +36,7 @@ services:
           "Web": {
             "$${TS_CERT_DOMAIN}:443": {
               "Handlers": {
-                "/": { "Proxy": "http://127.0.0.1:80" }
+                "/": { "Proxy": "http://127.0.0.1:8080" }
               }
             }
           },
@@ -129,7 +129,7 @@ services:
       - -c
       - |
         cat << 'EOF' > /etc/caddy/Caddyfile
-        :80 {
+        :8080 {
             respond /debug/* "Not Permitted" 403
             reverse_proxy localhost:4000
         }

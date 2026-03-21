@@ -84,7 +84,7 @@ services:
     image: caddy:2-alpine
     container_name: greenlight-caddy
     ports:
-      - "9876:80"                              # HTTP (required for ACME challenge)
+      - "80:80"                              # HTTP (required for ACME challenge)
       - "443:443"                            # HTTPS
     depends_on:
       - api
