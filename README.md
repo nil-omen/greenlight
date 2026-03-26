@@ -2,6 +2,8 @@
 
 A modern JSON API application for managing movie information, built with Go.
 
+> **Note**: A companion client for this API is available at [https://github.com/nil-omen/greenlight-client](https://github.com/nil-omen/greenlight-client).
+
 ## Overview
 
 Greenlight is a RESTful API service that provides endpoints for managing a movie database, user authentication, and system metrics. The project demonstrates best practices in modern Go API development, including robust error handling, comprehensive JSON validation, custom middleware, graceful shutdown, and PostgreSQL database integration.
