@@ -141,6 +141,16 @@ Endpoints requiring permissions enforce Authorization via Bearer Token.
 - **PUT** `/v1/users/activated` - Activate a user account using the token sent via email.
 - **POST** `/v1/tokens/authentication` - Authenticate a user and receive a 24-hour Bearer token.
 
+#### Granting Elevated Permissions
+By default, activated users are automatically granted the `movies:read` permission. There is no API endpoint to grant admin-level or write permissions. To grant a user elevated permissions (such as `movies:write`), connect to your production PostgreSQL database and execute the following query:
+
+```sql
+INSERT INTO users_permissions (user_id, permission_id)
+SELECT {user_id}, permissions.id FROM permissions WHERE permissions.code = ANY(ARRAY['movies:read', 'movies:write'])
+ON CONFLICT DO NOTHING;
+```
+*(Replace `{user_id}` with the actual internal database integer ID of the user).*
+
 ## Project Structure
 
 ```

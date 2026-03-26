@@ -471,6 +471,26 @@ sudo systemctl restart postgresql
    ```
 2. Stop the conflicting service or configure PostgreSQL to use a different port
 
+## Managing Application User Permissions
+
+By default, Greenlight users are only granted the `movies:read` permission when they activate their accounts. To manually grant elevated permissions (like `movies:write`) to a user in production, connect to the database and insert a record into the `users_permissions` table:
+
+```sql
+-- 1. Find the user's ID by their email
+SELECT id, name, email FROM users WHERE email = 'alice@example.com';
+
+-- 2. Insert the permissions (replace '2' with the actual user ID)
+INSERT INTO users_permissions (user_id, permission_id)
+SELECT 2, permissions.id FROM permissions WHERE permissions.code = ANY(ARRAY['movies:read', 'movies:write'])
+ON CONFLICT DO NOTHING;
+
+-- 3. Verify the permissions
+SELECT permissions.code
+FROM permissions
+INNER JOIN users_permissions ON users_permissions.permission_id = permissions.id
+WHERE users_permissions.user_id = 2;
+```
+
 ## Useful PostgreSQL Commands
 
 Once connected to the database:
