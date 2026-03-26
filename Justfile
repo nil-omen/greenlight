@@ -1,11 +1,11 @@
-
 # Variables
+
 project_name := "greenlight"
 binary_name := "api"
 sources := "./cmd/api"
 output_dir := "./bin"
 production_host := "ubuntu-gl.meteor-alphard.ts.net"
-container_cmd := "podman"                    # Change to "docker" if needed
+container_cmd := "podman"
 
 # Default task: list all available recipes
 default:
@@ -34,8 +34,8 @@ db-psql:
 
 # Create a new database migration
 db-migrations-new name:
-    @echo 'Creating migration files for {{name}}...'
-    migrate create -seq -ext=.sql -dir=./migrations {{name}}
+    @echo 'Creating migration files for {{ name }}...'
+    migrate create -seq -ext=.sql -dir=./migrations {{ name }}
 
 # Apply all up database migrations
 [confirm]
@@ -147,10 +147,15 @@ fmt:
     @echo "📝 Formatting code..."
     go fmt ./...
 
-# Tidy up go.mod dependencies
+# Tidy and vendor module dependencies, and format all .go files
 tidy:
-    @echo "📦 Tidying modules..."
+    @echo 'Tidying module dependencies...'
     go mod tidy
+    @echo 'Verifying and vendoring module dependencies...'
+    go mod verify
+    go mod vendor
+    @echo 'Formatting .go files...'
+    go fmt ./...
 
 # Clean build artifacts and tls and tmp folders
 [confirm]
@@ -170,16 +175,16 @@ cert:
 
 # Connect to the production server
 production-connect:
-    ssh greenlight@{{production_host}}
+    ssh greenlight@{{ production_host }}
 
 # Deploy the api to production
 [confirm]
 production-deploy: build-linux
-    rsync -P {{ output_dir }}/linux_amd64/{{ binary_name }} greenlight@{{production_host}}:~
-    rsync -rP --delete ./migrations greenlight@{{production_host}}:~
-    rsync -P ./remote/production/api.service greenlight@{{production_host}}:~
-    rsync -P ./remote/production/Caddyfile greenlight@{{production_host}}:~
-    ssh -t greenlight@{{production_host}} '\
+    rsync -P {{ output_dir }}/linux_amd64/{{ binary_name }} greenlight@{{ production_host }}:~
+    rsync -rP --delete ./migrations greenlight@{{ production_host }}:~
+    rsync -P ./remote/production/api.service greenlight@{{ production_host }}:~
+    rsync -P ./remote/production/Caddyfile greenlight@{{ production_host }}:~
+    ssh -t greenlight@{{ production_host }} '\
         source /etc/environment \
         && migrate -path ~/migrations -database $GREENLIGHT_DB_DSN up \
         && sudo mv ~/api.service /etc/systemd/system/ \
