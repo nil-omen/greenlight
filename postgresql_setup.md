@@ -12,6 +12,7 @@ This guide covers the installation, configuration, and setup of PostgreSQL for t
 - [Environment Configuration](#environment-configuration)
 - [Database Migrations](#database-migrations)
 - [Troubleshooting](#troubleshooting)
+- [Managing Application User Permissions](#managing-application-user-permissions)
 
 ## Installation
 
@@ -393,6 +394,10 @@ migrate -path=./migrations -database=$GREENLIGHT_DB_DSN down 1
 |---------|------|-------------|
 | 000001 | create_movies_table | Creates the `movies` table with core columns |
 | 000002 | add_movies_check_constraints | Adds validation constraints to the `movies` table |
+| 000003 | add_movies_indexes | Adds GIN indexes for full-text search on movies |
+| 000004 | create_users_table | Creates the `users` table for authentication |
+| 000005 | create_tokens_table | Creates the `tokens` table for auth/activation/password-reset tokens |
+| 000006 | add_permissions | Creates `permissions` and `users_permissions` tables, seeds `movies:read` and `movies:write` |
 
 ## Troubleshooting
 

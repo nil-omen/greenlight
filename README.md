@@ -86,7 +86,7 @@ The application accepts the following command-line flags (most have sensible def
 ### Database Settings (`-db-*`)
 | Flag                 | Default              | Description                                    |
 | -------------------- | -------------------- | ---------------------------------------------- |
-| `-db-dsn`            | `$GREENLIGHT_DB_DSN` | PostgreSQL Data Source Name                    |
+| `-db-dsn`            | `""` (use `$GREENLIGHT_DB_DSN`) | PostgreSQL Data Source Name              |
 | `-db-max-open-conns` | `25`                 | PostgreSQL max open connections                |
 | `-db-max-idle-conns` | `25`                 | PostgreSQL max idle connections                |
 | `-db-max-idle-time`  | `15m`                | PostgreSQL max connection idle time            |
@@ -141,7 +141,10 @@ Endpoints requiring permissions enforce Authorization via Bearer Token.
 ### Users & Authentication
 - **POST** `/v1/users` - Register a new user account (sends an activation email).
 - **PUT** `/v1/users/activated` - Activate a user account using the token sent via email.
+- **PUT** `/v1/users/password` - Reset a user's password using a password-reset token.
 - **POST** `/v1/tokens/authentication` - Authenticate a user and receive a 24-hour Bearer token.
+- **POST** `/v1/tokens/activation` - Request a new activation token email.
+- **POST** `/v1/tokens/password-reset` - Request a password reset token email.
 
 #### Granting Elevated Permissions
 By default, activated users are automatically granted the `movies:read` permission. There is no API endpoint to grant admin-level or write permissions. To grant a user elevated permissions (such as `movies:write`), connect to your production PostgreSQL database and execute the following query:
@@ -164,6 +167,7 @@ greenlight/
 │       ├── movies.go     # Movie handlers
 │       ├── users.go      # User handlers
 │       ├── tokens.go     # Token generation handlers
+│       ├── context.go    # Request context helpers
 │       ├── helpers.go    # Helper functions
 │       ├── errors.go     # Error response handlers
 │       ├── middleware.go # HTTP middleware (CORS, Rate Limiting, Auth)

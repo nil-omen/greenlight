@@ -52,7 +52,7 @@ tidy:
 	go mod verify
 	go mod vendor
 	@echo 'Formatting .go files...'
-	go fmt ./....
+	go fmt ./...
 
 ## audit: run quality control checks
 .PHONY: audit
