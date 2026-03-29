@@ -1,0 +1,35 @@
+name: Docker Publish
+
+on:
+  push:
+    # Trigger strictly when you push a new version tag (e.g. git tag v0.4.0 && git push origin v0.4.0)
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Important: Fetch all history so our Justfile 'git describe' command can find the tag
+          fetch-depth: 0 
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25.x'       # Compiles the standalone production binary
+
+      - name: Install Just
+        uses: extractions/setup-just@v2
+
+      - name: Log into Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build, Tag, and Push
+        # We override `container_cmd` from podman to docker so it utilizes the native GitHub Action Docker login.
+        run: just container_cmd=docker docker-publish
