@@ -89,7 +89,7 @@ services:
 
   # ── Greenlight API ────────────────────────────────────────────────────────
   api:
-    build: .
+    image: nilomen/greenlight-api:latest
     container_name: greenlight-api
     network_mode: service:tailscale
     depends_on:

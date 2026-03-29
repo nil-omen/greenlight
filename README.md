@@ -267,7 +267,7 @@ The application uses PostgreSQL for data persistence. See [postgresql_setup.md](
 
 ## Container Deployment
 
-As an alternative to the remote server setup, you can run the full stack (API + PostgreSQL + Caddy) in containers using Docker or Podman.
+As an alternative to the remote server setup, you can run the full stack (API + PostgreSQL + Caddy) in containers using Docker or Podman. The application utilizes a pre-built image from Docker Hub (`nilomen/greenlight-api:latest`), so no local compilation is required to start the stack.
 
 ### Prerequisites
 
@@ -324,6 +324,7 @@ just container-logs        # Tail logs from all services
 just container-logs api    # Tail logs from a specific service
 just container-ps          # Show container status
 just container-rebuild     # Force rebuild and restart
+just docker-publish        # Build, tag, and push the API image to Docker Hub
 ```
 
 > **Note**: The compose files use inline `configs` blocks — all configuration (Caddyfile, DB init scripts, Tailscale serve config) is self-contained in the compose file. No external config files needed.

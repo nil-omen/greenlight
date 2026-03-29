@@ -6,6 +6,8 @@ sources := "./cmd/api"
 output_dir := "./bin"
 production_host := "ubuntu-gl.meteor-alphard.ts.net"
 container_cmd := "podman"
+docker_username := "nilomen"
+git_tag := `git describe --tags --abbrev=0 2>/dev/null || echo "latest"`
 
 # Default task: list all available recipes
 default:
@@ -235,3 +237,14 @@ container-rebuild: build-linux
 container-ps:
     @{{ container_cmd }} compose -f compose.yml ps 2>/dev/null || \
     {{ container_cmd }} compose -f compose.local.yml ps
+
+# Build, tag and push the docker image with the latest git tag
+docker-publish: build-linux
+    @echo "🐳 Building image {{ docker_username }}/greenlight-api:{{ git_tag }}..."
+    {{ container_cmd }} build -t {{ docker_username }}/greenlight-api:{{ git_tag }} .
+    @echo "🐳 Tagging for docker.io..."
+    {{ container_cmd }} tag {{ docker_username }}/greenlight-api:{{ git_tag }} docker.io/{{ docker_username }}/greenlight-api:{{ git_tag }}
+    {{ container_cmd }} tag {{ docker_username }}/greenlight-api:{{ git_tag }} docker.io/{{ docker_username }}/greenlight-api:latest
+    @echo "🐳 Pushing to Docker Hub..."
+    {{ container_cmd }} push docker.io/{{ docker_username }}/greenlight-api:{{ git_tag }}
+    {{ container_cmd }} push docker.io/{{ docker_username }}/greenlight-api:latest

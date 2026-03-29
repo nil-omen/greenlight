@@ -52,7 +52,7 @@ services:
 
   # ── Greenlight API ────────────────────────────────────────────────────────
   api:
-    build: .
+    image: nilomen/greenlight-api:latest
     container_name: greenlight-api
     depends_on:
       db:
