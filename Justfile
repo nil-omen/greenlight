@@ -1,6 +1,6 @@
 # Variables
 
-project_name := "greenlight"
+project_name := "greenlight-api"
 binary_name := "api"
 sources := "./cmd/api"
 output_dir := "./bin"
@@ -240,11 +240,11 @@ container-ps:
 
 # Build, tag and push the docker image with the latest git tag
 docker-publish: build-linux
-    @echo "🐳 Building image {{ docker_username }}/greenlight-api:{{ git_tag }}..."
-    {{ container_cmd }} build -t {{ docker_username }}/greenlight-api:{{ git_tag }} .
+    @echo "🐳 Building image {{ docker_username }}/{{ project_name }}:{{ git_tag }}..."
+    {{ container_cmd }} build -t {{ docker_username }}/{{ project_name }}:{{ git_tag }} .
     @echo "🐳 Tagging for docker.io..."
-    {{ container_cmd }} tag {{ docker_username }}/greenlight-api:{{ git_tag }} docker.io/{{ docker_username }}/greenlight-api:{{ git_tag }}
-    {{ container_cmd }} tag {{ docker_username }}/greenlight-api:{{ git_tag }} docker.io/{{ docker_username }}/greenlight-api:latest
+    {{ container_cmd }} tag {{ docker_username }}/{{ project_name }}:{{ git_tag }} docker.io/{{ docker_username }}/{{ project_name }}:{{ git_tag }}
+    {{ container_cmd }} tag {{ docker_username }}/{{ project_name }}:{{ git_tag }} docker.io/{{ docker_username }}/{{ project_name }}:latest
     @echo "🐳 Pushing to Docker Hub..."
-    {{ container_cmd }} push docker.io/{{ docker_username }}/greenlight-api:{{ git_tag }}
-    {{ container_cmd }} push docker.io/{{ docker_username }}/greenlight-api:latest
+    {{ container_cmd }} push docker.io/{{ docker_username }}/{{ project_name }}:{{ git_tag }}
+    {{ container_cmd }} push docker.io/{{ docker_username }}/{{ project_name }}:latest
